@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from webapp.models import User, Expense
 from datetime import datetime
 
@@ -10,7 +10,11 @@ from datetime import datetime
 @csrf_exempt
 def new_expense(request):
     token = request.POST['token']
-    user = User.objects.filter(token__token=token).get()
+    user = None
+    try:
+        user = User.objects.filter(token__token=token).get()
+    except User.DoesNotExist:
+        return HttpResponse(status=403)
 
     expense = Expense.objects.create(
         user=user,
@@ -18,7 +22,6 @@ def new_expense(request):
         amount=request.POST['amount'],
         note=request.POST['note']
     )
-
 
     print(request.POST)
     print(expense)
